@@ -1,218 +1,200 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, LayoutGrid, List } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  Box,
+  Typography,
+  Card,
+  Grid,
+  ToggleButton,
+  ToggleButtonGroup,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  useTheme,
+  alpha,
+} from '@mui/material';
+import { motion } from 'framer-motion';
+import {
+  GridView as GridViewIcon,
+  ViewList as ListViewIcon,
+} from '@mui/icons-material';
+import InteractiveChart from '@/components/charts/InteractiveChart';
+import ResizableWidget from '@/components/charts/ResizableWidget';
 import {
   UnifiedChart,
-  CommonFilter,
-  CompactFilter,
   generateMockData,
   generatePieData,
-  generateScatterData,
-  generateBubbleData,
-  generateHeatmapData,
-  generateTreemapData,
-  generateFunnelData,
-  generateTimelineData,
-  generateWaterfallData,
-  generateFinancialData,
-  generateTodoData,
-  generateGridData,
-  FilterOption,
-  FilterState,
   ChartType,
 } from '@/components/charts';
 
-const chartTypes: { type: ChartType; label: string }[] = [
-  { type: 'line', label: 'Line Chart' },
-  { type: 'bar', label: 'Bar Chart' },
-  { type: 'area', label: 'Area Chart' },
-  { type: 'pie', label: 'Pie Chart' },
-  { type: 'doughnut', label: 'Doughnut Chart' },
-  { type: 'radar', label: 'Radar Chart' },
-  { type: 'scatter', label: 'Scatter Chart' },
-  { type: 'bubble', label: 'Bubble Chart' },
-  { type: 'polar', label: 'Polar Area Chart' },
-  { type: 'mixed', label: 'Mixed Chart' },
-  { type: 'stacked-bar', label: 'Stacked Bar Chart' },
-  { type: 'horizontal-bar', label: 'Horizontal Bar Chart' },
-  { type: 'stacked-area', label: 'Stacked Area Chart' },
-  { type: 'heatmap', label: 'Heatmap Chart' },
-  { type: 'treemap', label: 'Tree Map Chart' },
-  { type: 'funnel', label: 'Funnel Chart' },
-  { type: 'gauge', label: 'Gauge Chart' },
-  { type: 'timeline', label: 'Timeline Chart' },
-  { type: 'waterfall', label: 'Waterfall Chart' },
-  { type: 'financial', label: 'Financial Chart' },
-  { type: 'map', label: 'Map Chart' },
-  { type: 'todo', label: 'To-Do Chart' },
-  { type: 'grid', label: 'Grid View' },
+// Chart configurations
+const chartConfigs: { type: 'line' | 'bar' | 'area' | 'pie'; label: string; dataKeys: string[] }[] = [
+  { type: 'line', label: 'Revenue Trend', dataKeys: ['value', 'value2'] },
+  { type: 'bar', label: 'Sales Comparison', dataKeys: ['value', 'value2'] },
+  { type: 'area', label: 'Traffic Analysis', dataKeys: ['value'] },
+  { type: 'pie', label: 'Market Share', dataKeys: ['value'] },
+  { type: 'line', label: 'User Growth', dataKeys: ['value'] },
+  { type: 'bar', label: 'Performance Metrics', dataKeys: ['value', 'value2'] },
 ];
 
-const filterOptions: FilterOption[] = [
-  {
-    id: 'timeRange',
-    label: 'Time Range',
-    type: 'select',
-    options: [
-      { value: '7d', label: 'Last 7 days' },
-      { value: '30d', label: 'Last 30 days' },
-      { value: '90d', label: 'Last 90 days' },
-      { value: '1y', label: 'Last year' },
-    ],
-  },
-  {
-    id: 'category',
-    label: 'Category',
-    type: 'select',
-    options: [
-      { value: 'all', label: 'All Categories' },
-      { value: 'electronics', label: 'Electronics' },
-      { value: 'clothing', label: 'Clothing' },
-      { value: 'home', label: 'Home' },
-    ],
-  },
-  {
-    id: 'status',
-    label: 'Status',
-    type: 'select',
-    options: [
-      { value: 'active', label: 'Active' },
-      { value: 'inactive', label: 'Inactive' },
-      { value: 'pending', label: 'Pending' },
-    ],
-  },
-  {
-    id: 'region',
-    label: 'Region',
-    type: 'select',
-    options: [
-      { value: 'north', label: 'North' },
-      { value: 'south', label: 'South' },
-      { value: 'east', label: 'East' },
-      { value: 'west', label: 'West' },
-    ],
-  },
+// Sample data generation
+const generateSampleData = () => [
+  { name: 'Jan', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'Feb', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'Mar', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'Apr', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'May', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'Jun', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'Jul', value: Math.random() * 5000, value2: Math.random() * 3000 },
+  { name: 'Aug', value: Math.random() * 5000, value2: Math.random() * 3000 },
 ];
 
-const getDataForChart = (type: ChartType) => {
-  switch (type) {
-    case 'pie':
-    case 'doughnut':
-    case 'polar':
-      return generatePieData();
-    case 'scatter':
-      return generateScatterData();
-    case 'bubble':
-      return generateBubbleData();
-    case 'heatmap':
-      return generateHeatmapData();
-    case 'treemap':
-      return generateTreemapData();
-    case 'funnel':
-      return generateFunnelData();
-    case 'gauge':
-      return { value: Math.floor(Math.random() * 100) };
-    case 'timeline':
-      return generateTimelineData();
-    case 'waterfall':
-      return generateWaterfallData();
-    case 'financial':
-      return generateFinancialData();
-    case 'todo':
-      return generateTodoData();
-    case 'grid':
-      return generateGridData();
-    default:
-      return generateMockData(8);
-  }
-};
+const generatePieSampleData = () => [
+  { name: 'Product A', value: Math.random() * 100 },
+  { name: 'Product B', value: Math.random() * 100 },
+  { name: 'Product C', value: Math.random() * 100 },
+  { name: 'Product D', value: Math.random() * 100 },
+  { name: 'Product E', value: Math.random() * 100 },
+];
 
 const ChartShowcase: React.FC = () => {
-  const [filterValues, setFilterValues] = useState<FilterState>({});
-  const [compactFilterValues, setCompactFilterValues] = useState<FilterState>({});
+  const theme = useTheme();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [timeRange, setTimeRange] = useState('30d');
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, { width: number; height: number }>>({});
+
+  const handleViewChange = (_: React.MouseEvent<HTMLElement>, newView: 'grid' | 'list' | null) => {
+    if (newView) setViewMode(newView);
+  };
+
+  const handleWidgetResize = (id: string, width: number, height: number) => {
+    setWidgetSizes(prev => ({ ...prev, [id]: { width, height } }));
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <Box>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/home" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Link>
-            <div className="h-6 w-px bg-border" />
-            <h1 className="text-xl font-bold text-foreground">Chart Library</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Chart Library
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Interactive, resizable charts with zoom, brush, and legend controls
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>Time Range</InputLabel>
+            <Select
+              value={timeRange}
+              label="Time Range"
+              onChange={(e) => setTimeRange(e.target.value)}
             >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
+              <MenuItem value="7d">Last 7 days</MenuItem>
+              <MenuItem value="30d">Last 30 days</MenuItem>
+              <MenuItem value="90d">Last 90 days</MenuItem>
+              <MenuItem value="1y">Last year</MenuItem>
+            </Select>
+          </FormControl>
+
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewChange}
+            size="small"
+          >
+            <ToggleButton value="grid">
+              <GridViewIcon fontSize="small" />
+            </ToggleButton>
+            <ToggleButton value="list">
+              <ListViewIcon fontSize="small" />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+      </Box>
+
+      {/* Feature Chips */}
+      <Box sx={{ mb: 4, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        {['Interactive Tooltips', 'Zoom Controls', 'Brush Selector', 'Legend Toggle', 'Fullscreen Mode', 'Resizable'].map((feature) => (
+          <Chip
+            key={feature}
+            label={feature}
+            size="small"
+            sx={{
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              color: 'primary.main',
+              fontWeight: 500,
+            }}
+          />
+        ))}
+      </Box>
+
+      {/* Charts Grid */}
+      <Grid container spacing={3}>
+        {chartConfigs.map((config, index) => (
+          <Grid
+            item
+            xs={12}
+            md={viewMode === 'list' ? 12 : 6}
+            lg={viewMode === 'list' ? 12 : 4}
+            key={`${config.type}-${index}`}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+              <InteractiveChart
+                data={config.type === 'pie' ? generatePieSampleData() : generateSampleData()}
+                type={config.type}
+                title={config.label}
+                subtitle={`Data for ${timeRange}`}
+                dataKeys={config.dataKeys}
+                height={viewMode === 'list' ? 400 : 280}
+                showBrush={config.type !== 'pie'}
+                showZoom={config.type !== 'pie'}
+              />
+            </motion.div>
+          </Grid>
+        ))}
+      </Grid>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Common Filter Section */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Common Filter</h2>
-          <CommonFilter
-            filters={filterOptions}
-            values={filterValues}
-            onChange={setFilterValues}
-            onReset={() => setFilterValues({})}
-          />
-        </section>
+      {/* Resizable Widgets Section */}
+      <Box sx={{ mt: 6 }}>
+        <Typography variant="h5" fontWeight={600} gutterBottom>
+          Resizable Widgets
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Drag the corners to resize these chart widgets
+        </Typography>
 
-        {/* Compact Filter Section */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Compact Filter</h2>
-          <CompactFilter
-            filters={filterOptions}
-            values={compactFilterValues}
-            onChange={setCompactFilterValues}
-            onReset={() => setCompactFilterValues({})}
-          />
-        </section>
-
-        {/* Charts Grid */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4">All Charts ({chartTypes.length} types)</h2>
-          <div className={
-            viewMode === 'grid'
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "flex flex-col gap-6"
-          }>
-            {chartTypes.map(({ type, label }) => (
-              <div 
-                key={type} 
-                className={viewMode === 'list' ? 'h-80' : 'h-72'}
-              >
-                <UnifiedChart
-                  type={type}
-                  data={getDataForChart(type)}
-                  config={{ title: label }}
-                  className="h-full"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-    </div>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          {['resizable-1', 'resizable-2'].map((id, index) => (
+            <ResizableWidget
+              key={id}
+              id={id}
+              initialWidth={450}
+              initialHeight={320}
+              minWidth={300}
+              minHeight={200}
+              onResize={handleWidgetResize}
+            >
+              <InteractiveChart
+                data={generateSampleData()}
+                type={index === 0 ? 'area' : 'bar'}
+                title={index === 0 ? 'Resizable Area Chart' : 'Resizable Bar Chart'}
+                dataKeys={['value', 'value2']}
+                height={(widgetSizes[id]?.height || 320) - 80}
+                showBrush
+              />
+            </ResizableWidget>
+          ))}
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

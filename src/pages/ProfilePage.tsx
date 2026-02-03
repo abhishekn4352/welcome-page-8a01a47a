@@ -1,9 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Alert,
+  useTheme,
+  alpha,
+  Divider,
+} from '@mui/material';
+import { motion } from 'framer-motion';
+import {
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Close as CloseIcon,
+  LockReset as LockResetIcon,
+} from '@mui/icons-material';
 import { api } from '../services/api';
 
-const ProfilePage = () => {
+const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const storedProfile = {
     name: localStorage.getItem('fullname') || localStorage.getItem('username') || 'Unknown',
@@ -24,7 +49,6 @@ const ProfilePage = () => {
 
   const [editProfile, setEditProfile] = useState(profile);
 
-  // On mount, if values look unknown, try to fetch from backend and hydrate localStorage
   useEffect(() => {
     const looksUnknown = !storedProfile.name || storedProfile.name === 'Unknown' || !storedProfile.email || storedProfile.email === 'unknown@example.com';
     if (!looksUnknown) return;
@@ -67,16 +91,13 @@ const ProfilePage = () => {
         role: editProfile.role,
       });
 
-      // Update localStorage
       localStorage.setItem("fullname", data.item.fullname);
       localStorage.setItem("firstName", data.item.firstName);
       localStorage.setItem("email", data.item.email);
-      // Update roles in localStorage if provided in response
       if (data.item.role) {
         localStorage.setItem("role", data.item.role);
       }
 
-      // Update state
       setProfile({
         ...profile,
         name: data.item.fullname,
@@ -97,101 +118,162 @@ const ProfilePage = () => {
     setSuccessMessage('');
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
-
-  const handleHome = () => {
-    navigate('/home');
-  };
-
   const handleResetPassword = () => {
     navigate('/reset-password');
   };
 
+  const roleOptions = [
+    { value: 'ADMIN', label: 'Administrator' },
+    { value: 'USER', label: 'User' },
+    { value: 'Log Analyst', label: 'Log Analyst' },
+    { value: 'Workflow Editor', label: 'Workflow Editor' },
+    { value: 'Execution Approver', label: 'Execution Approver' },
+    { value: 'Billing Manager', label: 'Billing Manager' },
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center p-6 w-full">
-      <div className="bg-white rounded-lg shadow p-8 w-full max-w-md flex flex-col items-center">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold text-3xl mb-4">
-          {profile.name.charAt(0).toUpperCase()}
-        </div>
-        <div className="text-xl font-semibold text-gray-900 mb-1">{profile.name}</div>
-        <div className="text-gray-500 text-sm mb-4">{profile.role}</div>
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Card
+        component={motion.div}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        sx={{ maxWidth: 480, width: '100%' }}
+      >
+        <CardContent sx={{ p: 4 }}>
+          {/* Avatar & Name */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                mb: 2,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                fontSize: '2rem',
+                fontWeight: 700,
+              }}
+            >
+              {profile.name.charAt(0).toUpperCase()}
+            </Avatar>
+            <Typography variant="h5" fontWeight={600}>
+              {profile.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {profile.role}
+            </Typography>
+          </Box>
 
-        <div className="w-full border-t border-gray-200 my-4" />
+          <Divider sx={{ mb: 3 }} />
 
-        {editMode ? (
-          <div className="w-full flex flex-col gap-3 mb-6">
-            <div className="flex justify-between items-center text-gray-700">
-              <span className="font-medium">Name:</span>
-              <input
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-1/2"
+          {/* Success Message */}
+          {successMessage && !editMode && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              {successMessage}
+            </Alert>
+          )}
+
+          {/* Profile Form */}
+          {editMode ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <TextField
+                label="Full Name"
                 value={editProfile.name}
-                onChange={e => setEditProfile({ ...editProfile, name: e.target.value })}
+                onChange={(e) => setEditProfile({ ...editProfile, name: e.target.value })}
+                fullWidth
               />
-            </div>
-            <div className="flex justify-between items-center text-gray-700">
-              <span className="font-medium">Email:</span>
-              <input
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-1/2"
+              <TextField
+                label="Email"
+                type="email"
                 value={editProfile.email}
-                onChange={e => setEditProfile({ ...editProfile, email: e.target.value })}
+                onChange={(e) => setEditProfile({ ...editProfile, email: e.target.value })}
+                fullWidth
               />
-            </div>
-            <div className="flex justify-between items-center text-gray-700">
-              <span className="font-medium">Role:</span>
-              <select
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-1/2"
-                value={editProfile.role}
-                onChange={e => setEditProfile({ ...editProfile, role: e.target.value })}
-              >
-                <option value="ADMIN">ADMIN</option>
-                <option value="USER">USER</option>
-                <option value="Log Analyst">Log Analyst</option>
-                <option value="Workflow Editor">Workflow Editor</option>
-                <option value="Execution Approver">Execution Approver</option>
-                <option value="Billing Manager">Billing Manager</option>
-              </select>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full flex flex-col gap-2 mb-6">
-            <div className="flex justify-between text-gray-700">
-              <span className="font-medium">Name:</span>
-              <span>{profile.name}</span>
-            </div>
-            <div className="flex justify-between text-gray-700">
-              <span className="font-medium">Email:</span>
-              <span>{profile.email}</span>
-            </div>
-            <div className="flex justify-between text-gray-700">
-              <span className="font-medium">Role:</span>
-              <span>{profile.role}</span>
-            </div>
-          </div>
-        )}
+              <FormControl fullWidth>
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={editProfile.role}
+                  label="Role"
+                  onChange={(e) => setEditProfile({ ...editProfile, role: e.target.value })}
+                >
+                  {roleOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-        {successMessage && !editMode && (
-          <div className="text-green-600 text-sm mb-4">{successMessage}</div>
-        )}
+              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                  onClick={handleSave}
+                  fullWidth
+                >
+                  Save
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<CloseIcon />}
+                  onClick={handleCancel}
+                  fullWidth
+                >
+                  Cancel
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+                {[
+                  { label: 'Name', value: profile.name },
+                  { label: 'Email', value: profile.email },
+                  { label: 'Role', value: profile.role },
+                ].map((item) => (
+                  <Box
+                    key={item.label}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      py: 1,
+                      borderBottom: `1px solid ${theme.palette.divider}`,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      {item.label}
+                    </Typography>
+                    <Typography variant="body2" fontWeight={500}>
+                      {item.value}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
 
-        {editMode ? (
-          <div className="flex gap-2 w-full">
-            <button onClick={handleSave} className="flex-1 px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Save</button>
-            <button onClick={handleCancel} className="flex-1 px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition">Cancel</button>
-          </div>
-        ) : (
-          <div className="w-full flex flex-col gap-2">
-            <div className="flex gap-2 w-full">
-              <button onClick={handleEdit} className="flex-1 px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Edit Profile</button>
-              <button onClick={handleResetPassword} className="flex-1 px-4 py-2 rounded bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition">Reset Password</button>
-            </div>
-            {/* Logout and Home removed as they are in the MainLayout header */}
-          </div>
-        )}
-      </div>
-    </div>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<EditIcon />}
+                  onClick={handleEdit}
+                  fullWidth
+                >
+                  Edit Profile
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<LockResetIcon />}
+                  onClick={handleResetPassword}
+                  fullWidth
+                >
+                  Reset Password
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

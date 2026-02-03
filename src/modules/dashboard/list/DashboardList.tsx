@@ -1,102 +1,223 @@
 import React from 'react';
-import { Loader2, Plus, Edit, Trash2, Layout } from 'lucide-react';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  Button,
+  IconButton,
+  CircularProgress,
+  Alert,
+  useTheme,
+  alpha,
+} from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Dashboard as DashboardIcon,
+  Visibility as ViewIcon,
+} from '@mui/icons-material';
 import { useDashboardList } from './useDashboardList';
 
-const DashboardList = () => {
-    const { dashboards, loading, error, navigate, handleDelete } = useDashboardList();
+const DashboardList: React.FC = () => {
+  const theme = useTheme();
+  const { dashboards, loading, error, navigate, handleDelete } = useDashboardList();
 
-    if (loading) {
-        return (
-            <div className="flex h-96 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
-        );
-    }
-
+  if (loading) {
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Dashboards</h1>
-                    <p className="text-sm text-gray-500">Manage your analytics dashboards.</p>
-                </div>
-                <button
-                    onClick={() => navigate('/dashboards/new')}
-                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                    <Plus className="h-4 w-4" />
-                    New Dashboard
-                </button>
-            </div>
-
-            {error && (
-                <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
-                    {error}
-                </div>
-            )}
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {dashboards.map((dashboard) => (
-                    <div
-                        key={dashboard.id}
-                        className="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
-                    >
-                        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                            <Layout className="h-6 w-6" />
-                        </div>
-                        <div
-                            className="cursor-pointer"
-                            onClick={() => navigate(`/dashboards/${dashboard.id}`)}
-                        >
-                            <h3 className="mb-2 text-lg font-semibold text-gray-900 hover:text-blue-600">
-                                {dashboard.dashboard_name || dashboard.name || 'Untitled Dashboard'}
-                            </h3>
-                            <p className="mb-4 text-sm text-gray-500 line-clamp-2">
-                                {dashboard.dashboard_description || dashboard.description || 'No description available.'}
-                            </p>
-                        </div>
-
-                        <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-4">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/dashboards/edit/${dashboard.id}`);
-                                }}
-                                className="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600"
-                                title="Edit"
-                            >
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(dashboard.id);
-                                }}
-                                className="rounded p-2 text-gray-500 hover:bg-red-50 hover:text-red-600"
-                                title="Delete"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-
-                {dashboards.length === 0 && !error && (
-                    <div className="col-span-full flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-center">
-                        <Layout className="mb-2 h-10 w-10 text-gray-400" />
-                        <h3 className="text-lg font-medium text-gray-900">No dashboards yet</h3>
-                        <p className="text-gray-500">Create your first dashboard to get started.</p>
-                        <button
-                            onClick={() => navigate('/dashboards/new')}
-                            className="mt-4 text-sm font-medium text-blue-600 hover:underline"
-                        >
-                            Create one now &rarr;
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <CircularProgress sx={{ color: 'primary.main' }} />
+      </Box>
     );
+  }
+
+  return (
+    <Box>
+      {/* Header */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Dashboards
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Manage your analytics dashboards
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/dashboards/new')}
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          }}
+        >
+          New Dashboard
+        </Button>
+      </Box>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Dashboard Grid */}
+      <Grid container spacing={3}>
+        <AnimatePresence>
+          {dashboards.map((dashboard, index) => (
+            <Grid item xs={12} sm={6} lg={4} key={dashboard.id}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <Card
+                  sx={{
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: theme.shadows[8],
+                    },
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 3,
+                      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                    },
+                  }}
+                  onClick={() => navigate(`/dashboards/${dashboard.id}`)}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          bgcolor: alpha(theme.palette.primary.main, 0.1),
+                          color: 'primary.main',
+                        }}
+                      >
+                        <DashboardIcon />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" fontWeight={600} noWrap>
+                          {dashboard.dashboard_name || dashboard.name || 'Untitled Dashboard'}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                          }}
+                        >
+                          {dashboard.dashboard_description || dashboard.description || 'No description available.'}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 1,
+                        pt: 2,
+                        borderTop: `1px solid ${theme.palette.divider}`,
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/dashboards/${dashboard.id}`);
+                        }}
+                        sx={{
+                          color: 'text.secondary',
+                          '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1) },
+                        }}
+                      >
+                        <ViewIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/dashboards/edit/${dashboard.id}`);
+                        }}
+                        sx={{
+                          color: 'text.secondary',
+                          '&:hover': { color: 'info.main', bgcolor: alpha(theme.palette.info.main, 0.1) },
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(dashboard.id);
+                        }}
+                        sx={{
+                          color: 'text.secondary',
+                          '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.1) },
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+          ))}
+        </AnimatePresence>
+
+        {/* Empty State */}
+        {dashboards.length === 0 && !error && (
+          <Grid item xs={12}>
+            <Card
+              sx={{
+                p: 6,
+                textAlign: 'center',
+                border: `2px dashed ${theme.palette.divider}`,
+                bgcolor: 'transparent',
+              }}
+            >
+              <DashboardIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                No dashboards yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Create your first dashboard to start visualizing your data
+              </Typography>
+              <Button
+                variant="text"
+                color="primary"
+                onClick={() => navigate('/dashboards/new')}
+              >
+                Create one now →
+              </Button>
+            </Card>
+          </Grid>
+        )}
+      </Grid>
+    </Box>
+  );
 };
 
 export default DashboardList;

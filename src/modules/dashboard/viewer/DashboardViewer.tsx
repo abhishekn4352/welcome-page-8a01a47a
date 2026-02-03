@@ -404,45 +404,45 @@ const DashboardViewer = () => {
     }, [filterValues, individualFilterValues, layouts, nodes.length]); // Re-run when filters change or layouts (initial) load. Also when node count changes (initial load).
 
     if (configLoading) return (
-        <div className="flex items-center justify-center h-screen bg-gray-50">
-            <div className="text-lg font-medium text-blue-600 animate-pulse">Loading Dashboard...</div>
+        <div className="flex items-center justify-center h-[calc(100vh-100px)]" style={{ background: 'var(--background)' }}>
+            <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-3 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <span className="text-sm font-medium text-muted-foreground">Loading Dashboard...</span>
+            </div>
         </div>
     );
 
     if (configError) return (
-        <div className="flex items-center justify-center h-screen bg-gray-50">
-            <div className="text-red-500 bg-white p-4 rounded shadow">Error: {configError}</div>
+        <div className="flex items-center justify-center h-[calc(100vh-100px)]" style={{ background: 'var(--background)' }}>
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg border border-destructive/20">Error: {configError}</div>
         </div>
     );
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50">
+        <div className="h-[calc(100vh-100px)] flex flex-col" style={{ background: 'var(--background)' }}>
             {/* Header */}
-            <div className="bg-white border-b px-6 py-4 shadow-sm flex items-center gap-4 z-10 sticky top-0">
+            <div className="bg-card/80 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center gap-4 z-10">
                 <button
                     onClick={() => navigate('/dashboards')}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+                    className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground"
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-800">{dashboardName}</h1>
+                <h1 className="text-xl font-semibold text-foreground">{dashboardName}</h1>
             </div>
 
-            {/* Filter Bar Removed - Filters are now widgets on the canvas */}
-
+            {/* Canvas Area */}
             <div className="flex-1 w-full h-full relative">
                 <EnhancedCanvas
                     nodes={nodes}
-                    edges={[]} // Force empty edges to remove visual links
+                    edges={[]}
                     onNodesChange={onNodesChange}
-                    // onEdgesChange={onEdgesChange} // Disable edge changes
                     nodeTypes={nodeTypes}
                     isExecuting={false}
-                    readOnly={false} // Enable interaction for resize/drag
-                    nodesDraggable={true} // Allow individual movement
-                    nodesConnectable={false} // Disable connections
+                    readOnly={false}
+                    nodesDraggable={true}
+                    nodesConnectable={false}
                     diagramId="dashboard-viewer"
-                    // Standard exclusive selection on click
                     onNodeClick={(_, clickedNode) => {
                         setNodes((nds) => nds.map((n) => ({
                             ...n,
