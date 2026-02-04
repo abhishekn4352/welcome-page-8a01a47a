@@ -16,6 +16,7 @@ interface TodoChartProps {
   config?: ChartConfig;
   className?: string;
   onStatusChange?: (id: number, status: TodoItem['status']) => void;
+  noWrapper?: boolean;
 }
 
 const TodoChart: React.FC<TodoChartProps> = ({
@@ -23,6 +24,7 @@ const TodoChart: React.FC<TodoChartProps> = ({
   config = {},
   className,
   onStatusChange,
+  noWrapper = false,
 }) => {
   const { title = 'To-Do Chart' } = config;
 
@@ -60,57 +62,61 @@ const TodoChart: React.FC<TodoChartProps> = ({
   const completed = statusGroups.done.length;
   const progress = total > 0 ? (completed / total) * 100 : 0;
 
-  return (
+  const content = (
+    <div className="h-full flex flex-col gap-3 overflow-auto p-4">
+      {/* Progress bar */}
+      <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+        <div 
+          className="h-full bg-primary transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Task list */}
+      <div className="flex-1 space-y-1.5 overflow-auto">
+        {data.map(item => (
+          <div
+            key={item.id}
+            className={cn(
+              "flex items-center gap-2 p-2 rounded-lg border transition-colors",
+              item.status === 'done' 
+                ? 'bg-muted/50 border-muted' 
+                : 'bg-card border-border hover:border-primary/50'
+            )}
+          >
+            <button
+              onClick={() => {
+                const nextStatus: Record<TodoItem['status'], TodoItem['status']> = {
+                  'todo': 'in-progress',
+                  'in-progress': 'done',
+                  'done': 'todo',
+                };
+                onStatusChange?.(item.id, nextStatus[item.status]);
+              }}
+              className="shrink-0"
+            >
+              {getStatusIcon(item.status)}
+            </button>
+            <span className={cn(
+              "flex-1 text-sm",
+              item.status === 'done' && "line-through text-muted-foreground"
+            )}>
+              {item.title}
+            </span>
+            {getPriorityBadge(item.priority)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return noWrapper ? content : (
     <ChartWrapper 
       title={title} 
       className={className}
       subtitle={`${completed} of ${total} completed (${progress.toFixed(0)}%)`}
     >
-      <div className="h-full flex flex-col gap-3 overflow-auto">
-        {/* Progress bar */}
-        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* Task list */}
-        <div className="flex-1 space-y-1.5 overflow-auto">
-          {data.map(item => (
-            <div
-              key={item.id}
-              className={cn(
-                "flex items-center gap-2 p-2 rounded-lg border transition-colors",
-                item.status === 'done' 
-                  ? 'bg-muted/50 border-muted' 
-                  : 'bg-card border-border hover:border-primary/50'
-              )}
-            >
-              <button
-                onClick={() => {
-                  const nextStatus: Record<TodoItem['status'], TodoItem['status']> = {
-                    'todo': 'in-progress',
-                    'in-progress': 'done',
-                    'done': 'todo',
-                  };
-                  onStatusChange?.(item.id, nextStatus[item.status]);
-                }}
-                className="shrink-0"
-              >
-                {getStatusIcon(item.status)}
-              </button>
-              <span className={cn(
-                "flex-1 text-sm",
-                item.status === 'done' && "line-through text-muted-foreground"
-              )}>
-                {item.title}
-              </span>
-              {getPriorityBadge(item.priority)}
-            </div>
-          ))}
-        </div>
-      </div>
+      {content}
     </ChartWrapper>
   );
 };

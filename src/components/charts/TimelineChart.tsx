@@ -14,12 +14,14 @@ interface TimelineChartProps {
   data: TimelineEvent[];
   config?: ChartConfig;
   className?: string;
+  noWrapper?: boolean;
 }
 
 const TimelineChart: React.FC<TimelineChartProps> = ({
   data,
   config = {},
   className,
+  noWrapper = false,
 }) => {
   const { title = 'Timeline Chart', colors = CHART_COLORS_HEX } = config;
 
@@ -49,54 +51,58 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
     }
   };
 
-  return (
-    <ChartWrapper title={title} className={className}>
-      <div className="h-full overflow-auto py-2">
-        <div className="relative pl-6">
-          {/* Vertical line */}
-          <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-border" />
-          
-          {data.map((item, index) => (
-            <div key={index} className="relative flex gap-4 pb-6 last:pb-0">
-              {/* Icon */}
-              <div
-                className="absolute left-0 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center bg-background border-2"
-                style={{ 
-                  borderColor: getColor(item.type, index),
-                  color: getColor(item.type, index)
-                }}
-              >
-                {getIcon(item.type)}
-              </div>
-              
-              {/* Content */}
-              <div className="ml-4 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(item.date).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
+  const content = (
+    <div className="h-full overflow-auto py-2">
+      <div className="relative pl-6">
+        {/* Vertical line */}
+        <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-border" />
+        
+        {data.map((item, index) => (
+          <div key={index} className="relative flex gap-4 pb-6 last:pb-0">
+            {/* Icon */}
+            <div
+              className="absolute left-0 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center bg-background border-2"
+              style={{ 
+                borderColor: getColor(item.type, index),
+                color: getColor(item.type, index)
+              }}
+            >
+              {getIcon(item.type)}
+            </div>
+            
+            {/* Content */}
+            <div className="ml-4 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs text-muted-foreground">
+                  {new Date(item.date).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+                {item.type && (
+                  <span 
+                    className="text-xs px-1.5 py-0.5 rounded-full text-white"
+                    style={{ backgroundColor: getColor(item.type, index) }}
+                  >
+                    {item.type}
                   </span>
-                  {item.type && (
-                    <span 
-                      className="text-xs px-1.5 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: getColor(item.type, index) }}
-                    >
-                      {item.type}
-                    </span>
-                  )}
-                </div>
-                <h4 className="text-sm font-medium text-foreground">{item.event}</h4>
-                {item.description && (
-                  <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
                 )}
               </div>
+              <h4 className="text-sm font-medium text-foreground">{item.event}</h4>
+              {item.description && (
+                <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
+    </div>
+  );
+
+  return noWrapper ? content : (
+    <ChartWrapper title={title} className={className}>
+      {content}
     </ChartWrapper>
   );
 };

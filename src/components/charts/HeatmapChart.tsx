@@ -13,12 +13,14 @@ interface HeatmapChartProps {
   data: HeatmapDataPoint[];
   config?: ChartConfig;
   className?: string;
+  noWrapper?: boolean;
 }
 
 const HeatmapChart: React.FC<HeatmapChartProps> = ({
   data,
   config = {},
   className,
+  noWrapper = false,
 }) => {
   const { title = 'Heatmap Chart' } = config;
 
@@ -45,35 +47,35 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
     return point?.value ?? 0;
   };
 
-  return (
-    <ChartWrapper title={title} className={className}>
-      <div className="h-full overflow-auto">
-        <div className="min-w-max">
-          {/* Header row */}
-          <div className="flex">
-            <div className="w-12 h-6 shrink-0" /> {/* Corner */}
-            {xLabels.slice(0, 12).map((x, i) => (
-              <div 
-                key={x} 
-                className="w-8 h-6 text-[10px] text-muted-foreground text-center flex items-center justify-center"
-              >
-                {i % 3 === 0 ? x : ''}
-              </div>
-            ))}
-          </div>
-          
-          {/* Data rows */}
+  const content = (
+    <div className="h-full overflow-auto">
+      <div className="min-w-max h-full flex flex-col">
+        {/* Header row */}
+        <div className="flex flex-shrink-0">
+          <div className="w-12 h-6 shrink-0" /> {/* Corner */}
+          {xLabels.map((x, i) => (
+            <div 
+              key={x} 
+              className="w-8 h-6 text-[10px] text-muted-foreground text-center flex items-center justify-center flex-shrink-0"
+            >
+              {i % 3 === 0 ? x : ''}
+            </div>
+          ))}
+        </div>
+        
+        {/* Data rows */}
+        <div className="flex-1 min-h-0">
           {yLabels.map(y => (
             <div key={y} className="flex">
               <div className="w-12 h-6 text-[10px] text-muted-foreground flex items-center pr-2 justify-end shrink-0">
                 {y}
               </div>
-              {xLabels.slice(0, 12).map(x => {
+              {xLabels.map(x => {
                 const value = getValue(x, y);
                 return (
                   <div
                     key={`${x}-${y}`}
-                    className="w-8 h-6 rounded-sm m-0.5 flex items-center justify-center text-[9px] font-medium cursor-pointer transition-transform hover:scale-110 hover:z-10"
+                    className="w-8 h-6 rounded-sm m-0.5 flex items-center justify-center text-[9px] font-medium cursor-pointer transition-transform hover:scale-110 hover:z-10 flex-shrink-0"
                     style={{ backgroundColor: getColor(value) }}
                     title={`${y}, ${x}: ${value}`}
                   >
@@ -85,23 +87,29 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({
               })}
             </div>
           ))}
-          
-          {/* Legend */}
-          <div className="flex items-center gap-2 mt-4 ml-12">
-            <span className="text-xs text-muted-foreground">Low</span>
-            <div className="flex h-3 rounded overflow-hidden">
-              {[0, 0.25, 0.5, 0.75, 1].map(n => (
-                <div 
-                  key={n}
-                  className="w-6 h-full"
-                  style={{ backgroundColor: getColor(minValue + n * (maxValue - minValue)) }}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-muted-foreground">High</span>
+        </div>
+        
+        {/* Legend */}
+        <div className="flex items-center gap-2 mt-4 ml-12 flex-shrink-0">
+          <span className="text-xs text-muted-foreground">Low</span>
+          <div className="flex h-3 rounded overflow-hidden">
+            {[0, 0.25, 0.5, 0.75, 1].map(n => (
+              <div 
+                key={n}
+                className="w-6 h-full"
+                style={{ backgroundColor: getColor(minValue + n * (maxValue - minValue)) }}
+              />
+            ))}
           </div>
+          <span className="text-xs text-muted-foreground">High</span>
         </div>
       </div>
+    </div>
+  );
+
+  return noWrapper ? content : (
+    <ChartWrapper title={title} className={className}>
+      {content}
     </ChartWrapper>
   );
 };

@@ -5,8 +5,6 @@ import {
   Card,
   CardContent,
   Grid,
-  Button,
-  IconButton,
   CircularProgress,
   Alert,
   useTheme,
@@ -14,9 +12,6 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Dashboard as DashboardIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
@@ -24,7 +19,7 @@ import { useDashboardList } from './useDashboardList';
 
 const DashboardList: React.FC = () => {
   const theme = useTheme();
-  const { dashboards, loading, error, navigate, handleDelete } = useDashboardList();
+  const { dashboards, loading, error, navigate } = useDashboardList();
 
   if (loading) {
     return (
@@ -37,25 +32,13 @@ const DashboardList: React.FC = () => {
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Dashboards
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your analytics dashboards
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/dashboards/new')}
-          sx={{
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-          }}
-        >
-          New Dashboard
-        </Button>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight={700}>
+          Dashboards
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          View your analytics dashboards
+        </Typography>
       </Box>
 
       {/* Error Alert */}
@@ -140,45 +123,19 @@ const DashboardList: React.FC = () => {
                         borderTop: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/dashboards/${dashboard.id}`);
-                        }}
+                      <Box
                         sx={{
-                          color: 'text.secondary',
-                          '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1) },
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          color: 'primary.main',
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
                         }}
                       >
                         <ViewIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/dashboards/edit/${dashboard.id}`);
-                        }}
-                        sx={{
-                          color: 'text.secondary',
-                          '&:hover': { color: 'info.main', bgcolor: alpha(theme.palette.info.main, 0.1) },
-                        }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(dashboard.id);
-                        }}
-                        sx={{
-                          color: 'text.secondary',
-                          '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.1) },
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                        View Dashboard
+                      </Box>
                     </Box>
                   </CardContent>
                 </Card>
@@ -200,18 +157,11 @@ const DashboardList: React.FC = () => {
             >
               <DashboardIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
               <Typography variant="h6" gutterBottom>
-                No dashboards yet
+                No dashboards available
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Create your first dashboard to start visualizing your data
+              <Typography variant="body2" color="text.secondary">
+                Dashboards will appear here once created
               </Typography>
-              <Button
-                variant="text"
-                color="primary"
-                onClick={() => navigate('/dashboards/new')}
-              >
-                Create one now →
-              </Button>
             </Card>
           </Grid>
         )}
