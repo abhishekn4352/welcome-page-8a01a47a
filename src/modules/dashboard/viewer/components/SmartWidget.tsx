@@ -7,7 +7,7 @@ interface SmartWidgetProps {
     globalFilters?: Record<string, any>;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))', 'hsl(var(--primary))'];
 
 const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
     const [data, setData] = useState<any[]>([]);
@@ -22,31 +22,21 @@ const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
 
             setLoading(true);
             try {
-                // Ensure yAxis is a string for the API call
                 const yAxis = Array.isArray(config.yAxis) ? config.yAxis.join(',') : config.yAxis;
-
-                // Construct filters matching legacy logic: { field: value }
                 let filters = '';
                 const filterObj: Record<string, any> = {};
 
-                // 1. Add Base Filters (from config)
                 if (config.baseFilters && Array.isArray(config.baseFilters) && config.baseFilters.length > 0) {
                     config.baseFilters.forEach((filter: any) => {
-                        // Only add if both field and value are present and not empty
                         if (filter.field && filter.value !== undefined && filter.value !== null && filter.value !== '') {
                             filterObj[filter.field] = filter.value;
                         }
                     });
                 }
 
-                // 2. Add Global Filters (merged, potentially overriding base filters)
                 if (globalFilters) {
                     Object.entries(globalFilters).forEach(([key, value]) => {
-                        // Handle date range specifically if needed, or assume value is string/number
                         if (value !== undefined && value !== null && value !== '') {
-                            // If Date Range (object with start/end), you might need specific logic depending on Backend API expectations
-                            // For now assuming the backend handles whatever logic legacy did (legacy sent date range as value?)
-                            // Legacy passed value directly. 
                             filterObj[key] = value;
                         }
                     });
@@ -67,26 +57,21 @@ const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
                     filters
                 );
 
-
                 if (response) {
-                    // Normalize data for Recharts
                     let formattedData: any[] = [];
 
                     if (response.chartLabels && response.chartData) {
-                        // Standard Legacy Format: labels: ['A'], data: [10]
                         formattedData = response.chartLabels.map((label: string, index: number) => ({
                             name: label,
                             value: response.chartData[index]
                         }));
                     } else if (response.labels && response.datasets) {
-                        // Alternate Legacy Format
                         const dataset = response.datasets[0];
                         formattedData = response.labels.map((label: string, index: number) => ({
                             name: label,
                             value: dataset ? dataset.data[index] : 0
                         }));
                     } else if (Array.isArray(response)) {
-                        // Direct array (rare but possible)
                         formattedData = response;
                     }
 
@@ -103,24 +88,37 @@ const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
         fetchData();
     }, [config, globalFilters]);
 
-    if (loading) return <div className="flex h-full items-center justify-center text-gray-400 text-xs">Loading...</div>;
-    if (error) return <div className="flex h-full items-center justify-center text-red-400 text-xs">{error}</div>;
-    if (!data.length) return <div className="flex h-full items-center justify-center text-gray-400 text-xs">No Data</div>;
+    if (loading) return <div className="flex h-full items-center justify-center text-muted-foreground text-xs">Loading...</div>;
+    if (error) return <div className="flex h-full items-center justify-center text-destructive text-xs">{error}</div>;
+    if (!data.length) return <div className="flex h-full items-center justify-center text-muted-foreground text-xs">No Data</div>;
 
     const renderChart = () => {
         const type = (config.chartType || 'bar').toLowerCase();
+
+        const axisStyle = { 
+            fontSize: 11, 
+            fill: 'hsl(var(--muted-foreground))' 
+        };
+        
+        const tooltipStyle = {
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            fontSize: '12px',
+            color: 'hsl(var(--foreground))'
+        };
 
         switch (type) {
             case 'line':
             case 'line_chart':
                 return (
                     <LineChart data={data}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                        <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                        <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                        <Tooltip contentStyle={tooltipStyle} />
                         <Legend />
-                        <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
+                        <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} />
                     </LineChart>
                 );
             case 'pie':
@@ -133,7 +131,7 @@ const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
                             cy="50%"
                             innerRadius={40}
                             outerRadius={80}
-                            fill="#8884d8"
+                            fill="hsl(var(--primary))"
                             dataKey="value"
                             label
                         >
@@ -141,7 +139,7 @@ const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip contentStyle={tooltipStyle} />
                         <Legend />
                     </PieChart>
                 );
@@ -150,20 +148,20 @@ const SmartWidget: React.FC<SmartWidgetProps> = ({ config, globalFilters }) => {
             default:
                 return (
                     <BarChart data={data}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                        <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                        <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                        <Tooltip contentStyle={tooltipStyle} />
                         <Legend />
-                        <Bar dataKey="value" fill="#82ca9d" />
+                        <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                 );
         }
     };
 
     return (
-        <div className="flex flex-col h-full w-full bg-white p-2 rounded shadow-sm border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2 truncate" title={config.charttitle || config.name}>
+        <div className="flex flex-col h-full w-full bg-card p-2 rounded-lg shadow-sm border border-border">
+            <h4 className="text-sm font-semibold text-foreground mb-2 truncate" title={config.charttitle || config.name}>
                 {config.charttitle || config.name}
             </h4>
             <div className="flex-1 min-h-0">

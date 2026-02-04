@@ -33,37 +33,37 @@ import {
 // SHARED UTILITIES & CONSTANTS
 // ============================================================================
 
-// Modern Color Palette
+// Modern Color Palette - using CSS variable colors that work with theming
 const CHART_COLORS = [
-  '#3b82f6', // Blue
-  '#ef4444', // Red
-  '#10b981', // Emerald
-  '#f59e0b', // Amber
-  '#8b5cf6', // Violet
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
+  'hsl(221, 83%, 53%)', // Primary blue
+  'hsl(142, 71%, 45%)', // Emerald
+  'hsl(38, 92%, 50%)',  // Amber
+  'hsl(262, 83%, 58%)', // Violet
+  'hsl(330, 81%, 60%)', // Pink
+  'hsl(187, 92%, 41%)', // Cyan
+  'hsl(0, 84%, 60%)',   // Red
 ];
 
-// Reusable Custom Tooltip with enhanced styling
+// Reusable Custom Tooltip with enhanced styling - theme aware
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
-        backgroundColor: 'rgba(31, 41, 55, 0.95)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'hsl(var(--card))',
+        border: '1px solid hsl(var(--border))',
         padding: '10px 14px',
         borderRadius: '10px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
         fontSize: '12px',
         backdropFilter: 'blur(10px)',
-        color: '#fff'
+        color: 'hsl(var(--foreground))'
       }}>
-        <p style={{ fontWeight: '700', color: '#f3f4f6', marginBottom: '8px', fontSize: '13px' }}>{label}</p>
+        <p style={{ fontWeight: '700', color: 'hsl(var(--foreground))', marginBottom: '8px', fontSize: '13px' }}>{label}</p>
         {payload.map((entry, index) => (
           <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
             <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: entry.color, boxShadow: `0 0 8px ${entry.color}` }} />
-            <span style={{ color: '#d1d5db', fontSize: '11px' }}>{entry.name}:</span>
-            <span style={{ fontWeight: '600', color: '#fff', marginLeft: '4px' }}>
+            <span style={{ color: 'hsl(var(--muted-foreground))', fontSize: '11px' }}>{entry.name}:</span>
+            <span style={{ fontWeight: '600', color: 'hsl(var(--foreground))', marginLeft: '4px' }}>
               {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
             </span>
           </div>
@@ -74,20 +74,20 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// Shared Axis Props for consistency
+// Shared Axis Props for consistency - theme aware
 const axisProps = {
-  tick: { fontSize: 12, fill: '#6b7280', fontWeight: '500' },
-  axisLine: { stroke: '#e5e7eb', strokeWidth: 1.5 },
-  tickLine: { stroke: '#e5e7eb', strokeWidth: 1 },
+  tick: { fontSize: 12, fill: 'hsl(var(--muted-foreground))', fontWeight: '500' },
+  axisLine: { stroke: 'hsl(var(--border))', strokeWidth: 1.5 },
+  tickLine: { stroke: 'hsl(var(--border))', strokeWidth: 1 },
   tickMargin: 10,
-  stroke: '#e5e7eb',
+  stroke: 'hsl(var(--border))',
 };
 
 const gridProps = {
   strokeDasharray: '4 4',
   vertical: false,
-  stroke: '#e5e7eb',
-  opacity: 0.6
+  stroke: 'hsl(var(--border))',
+  opacity: 0.5
 };
 
 // ============================================================================
@@ -294,8 +294,8 @@ const dotStyle = {
   position: 'absolute',
   width: 12,
   height: 12,
-  background: '#3b82f6',
-  border: '2px solid #fff',
+  background: 'hsl(var(--primary))',
+  border: '2px solid hsl(var(--card))',
   borderRadius: '50%',
   zIndex: 2,
 };
@@ -601,7 +601,7 @@ const PieChart = ({ config, width = 400, height = 400 }) => {
   const dataKey = data.length ? Object.keys(data[0]).find(k => k !== 'name' && k !== 'fill') || 'value' : 'value';
 
   if (!data.length) {
-    return <div style={{ width, height, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#6b7280' }}>No Data</div>;
+    return <div style={{ width, height, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }} className="text-muted-foreground">No Data</div>;
   }
 
   return (
@@ -615,7 +615,7 @@ const PieChart = ({ config, width = 400, height = 400 }) => {
           outerRadius={Math.min(width, height) * 0.35} 
           dataKey={dataKey} 
           paddingAngle={2}
-          stroke="#fff"
+          stroke="hsl(var(--card))"
           strokeWidth={2}
         >
           {data.map((entry, index) => (
@@ -627,7 +627,7 @@ const PieChart = ({ config, width = 400, height = 400 }) => {
           verticalAlign="bottom" 
           height={36} 
           iconType="circle"
-          wrapperStyle={{ fontSize: '11px', color: '#4b5563' }}
+          wrapperStyle={{ fontSize: '11px' }}
         />
       </RechartsPieChart>
     </div>
@@ -638,7 +638,7 @@ const PieChart = ({ config, width = 400, height = 400 }) => {
 const RadarChart = ({ config, width = 200, height = 200 }) => {
   const data = config?.data || [];
   if (!data.length) {
-    return <div style={{ width, height, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#6b7280' }}>No Data</div>;
+    return <div style={{ width, height, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }} className="text-muted-foreground">No Data</div>;
   }
   
   const keys = Object.keys(data[0]).filter(k => k !== 'subject' && k !== 'fullMark');
@@ -648,13 +648,13 @@ const RadarChart = ({ config, width = 200, height = 200 }) => {
   return (
     <div style={{ width: width, height: height, overflow: 'hidden' }}>
       <RechartsRadarChart width={width} height={height} data={data} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-        <PolarGrid stroke="#e5e7eb" />
-        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#6b7280' }} />
+        <PolarGrid stroke="hsl(var(--border))" />
+        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
         <PolarRadiusAxis angle={90} domain={[0, 'auto']} tick={false} axisLine={false} />
         
-        <Radar name="Series A" dataKey={keyA} stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
+        <Radar name="Series A" dataKey={keyA} stroke={CHART_COLORS[0]} fill={CHART_COLORS[0]} fillOpacity={0.2} strokeWidth={2} />
         {keyB && (
-          <Radar name="Series B" dataKey={keyB} stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} strokeWidth={2} />
+          <Radar name="Series B" dataKey={keyB} stroke={CHART_COLORS[6]} fill={CHART_COLORS[6]} fillOpacity={0.2} strokeWidth={2} />
         )}
         <Tooltip content={<CustomTooltip />} />
         <Legend wrapperStyle={{ fontSize: '11px', marginTop: '10px' }} />
@@ -866,7 +866,7 @@ const WidgetNode = ({ data = {}, id, isConnectable, isSelected, width: propWidth
     if (!hasFilters) return null;
 
     return (
-      <div className="flex flex-wrap gap-2.5 items-center px-3 py-2.5 border-b border-gray-200/70 bg-gradient-to-r from-white to-slate-50 nodrag w-full" style={{ zIndex: 10, minHeight: 42 }}>
+      <div className="flex flex-wrap gap-2.5 items-center px-3 py-2.5 border-b border-border bg-muted/30 nodrag w-full" style={{ zIndex: 10, minHeight: 42 }}>
         {uiFilters.map((f, idx) => {
           // Normalize options string
           let opts = [];
@@ -928,24 +928,23 @@ const WidgetNode = ({ data = {}, id, isConnectable, isSelected, width: propWidth
       case 'widget-doughnutchart': return <DoughnutChart config={cfg} width={width} height={contentHeight} />;
       case 'widget-compositechart': return <ComposedChart config={cfg} width={width} height={contentHeight} />;
       case 'smartChart': return <SmartWidget config={cfg} globalFilters={data.globalFilters} />;
-      default: return <div style={{ fontSize: 12, color: '#6b7280', width, height: contentHeight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Widget</div>;
+      default: return <div style={{ fontSize: 12, width, height: contentHeight, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="text-muted-foreground">Widget</div>;
     }
   })();
 
   return (
     <div
-      className={`relative group bg-white/95 rounded-xl shadow-md border border-gray-200/80 flex flex-col overflow-hidden ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+      className={`relative group bg-card rounded-xl shadow-md border border-border flex flex-col overflow-hidden ${isSelected ? 'ring-2 ring-primary' : ''}`}
       style={{ width, height, transition: 'box-shadow 0.2s, border-color 0.2s' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3.5 py-2 border-b border-gray-200/70 bg-gradient-to-r from-slate-50 via-white to-slate-50 handle h-11 shrink-0">
+      <div className="flex items-center justify-between px-3.5 py-2 border-b border-border bg-muted/30 handle h-11 shrink-0">
         <div className="flex flex-col min-w-0">
-          {/* IconComponent is not defined in the original code, removing for safety */}
-          <span className="text-sm font-semibold text-gray-800 truncate select-none" title={title}>
+          <span className="text-sm font-semibold text-foreground truncate select-none" title={title}>
             {title}
           </span>
           {description && (
-            <span className="text-[11px] text-gray-500 truncate" title={description}>{description}</span>
+            <span className="text-[11px] text-muted-foreground truncate" title={description}>{description}</span>
           )}
         </div>
 
@@ -953,17 +952,17 @@ const WidgetNode = ({ data = {}, id, isConnectable, isSelected, width: propWidth
           {/* Action buttons */}
           <button
             onClick={(e) => { e.stopPropagation(); data.onDeleteNode && data.onDeleteNode(id); }}
-            className="h-7 w-7 rounded-md border border-gray-200 bg-white/80 text-gray-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+            className="h-7 w-7 rounded-md border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/50 hover:bg-primary/10"
             title="Delete"
           >
-            <Icon name="Scissors" size={14} color="#2563eb" />
+            <Icon name="Scissors" size={14} className="text-primary" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); data.onCopyNode && data.onCopyNode(id); }}
-            className="h-7 w-7 rounded-md border border-gray-200 bg-white/80 text-gray-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+            className="h-7 w-7 rounded-md border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/50 hover:bg-primary/10"
             title="Copy"
           >
-            <Icon name="Copy" size={14} color="#2563eb" />
+            <Icon name="Copy" size={14} className="text-primary" />
           </button>
         </div>
       </div>
