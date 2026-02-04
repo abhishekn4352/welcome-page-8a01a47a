@@ -9,6 +9,7 @@ export { default as ChartWrapper } from './ChartWrapper';
 export { default as CommonFilter } from './CommonFilter';
 export { default as CompactFilter } from './CompactFilter';
 export { default as UnifiedChart } from './UnifiedChart';
+export { default as ResizableChartWidget } from './ResizableChartWidget';
 
 // Individual Chart Components
 export { default as LineChart } from './LineChart';

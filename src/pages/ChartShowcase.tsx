@@ -2,198 +2,513 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Card,
-  Grid,
-  ToggleButton,
-  ToggleButtonGroup,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Chip,
   useTheme,
   alpha,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import ResizableChartWidget from '@/components/charts/ResizableChartWidget';
 import {
-  GridView as GridViewIcon,
-  ViewList as ListViewIcon,
-} from '@mui/icons-material';
-import InteractiveChart from '@/components/charts/InteractiveChart';
-import ResizableWidget from '@/components/charts/ResizableWidget';
-import {
-  UnifiedChart,
-  generateMockData,
-  generatePieData,
-  ChartType,
-} from '@/components/charts';
+  ResponsiveContainer,
+  LineChart, Line,
+  BarChart, Bar,
+  AreaChart, Area,
+  PieChart, Pie, Cell,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ScatterChart, Scatter,
+  ComposedChart,
+  Treemap,
+  FunnelChart, Funnel, LabelList,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from 'recharts';
 
-// Chart configurations
-const chartConfigs: { type: 'line' | 'bar' | 'area' | 'pie'; label: string; dataKeys: string[] }[] = [
-  { type: 'line', label: 'Revenue Trend', dataKeys: ['value', 'value2'] },
-  { type: 'bar', label: 'Sales Comparison', dataKeys: ['value', 'value2'] },
-  { type: 'area', label: 'Traffic Analysis', dataKeys: ['value'] },
-  { type: 'pie', label: 'Market Share', dataKeys: ['value'] },
-  { type: 'line', label: 'User Growth', dataKeys: ['value'] },
-  { type: 'bar', label: 'Performance Metrics', dataKeys: ['value', 'value2'] },
+// Color palette
+const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f97316', '#10b981', '#06b6d4', '#3b82f6', '#f59e0b'];
+
+// Mock data generators
+const lineData = [
+  { name: 'Jan', revenue: 4000, profit: 2400, users: 2400 },
+  { name: 'Feb', revenue: 3000, profit: 1398, users: 2210 },
+  { name: 'Mar', revenue: 2000, profit: 9800, users: 2290 },
+  { name: 'Apr', revenue: 2780, profit: 3908, users: 2000 },
+  { name: 'May', revenue: 1890, profit: 4800, users: 2181 },
+  { name: 'Jun', revenue: 2390, profit: 3800, users: 2500 },
+  { name: 'Jul', revenue: 3490, profit: 4300, users: 2100 },
+  { name: 'Aug', revenue: 4200, profit: 5200, users: 2800 },
 ];
 
-// Sample data generation
-const generateSampleData = () => [
-  { name: 'Jan', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'Feb', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'Mar', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'Apr', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'May', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'Jun', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'Jul', value: Math.random() * 5000, value2: Math.random() * 3000 },
-  { name: 'Aug', value: Math.random() * 5000, value2: Math.random() * 3000 },
+const pieData = [
+  { name: 'Desktop', value: 400 },
+  { name: 'Mobile', value: 300 },
+  { name: 'Tablet', value: 200 },
+  { name: 'Other', value: 100 },
 ];
 
-const generatePieSampleData = () => [
-  { name: 'Product A', value: Math.random() * 100 },
-  { name: 'Product B', value: Math.random() * 100 },
-  { name: 'Product C', value: Math.random() * 100 },
-  { name: 'Product D', value: Math.random() * 100 },
-  { name: 'Product E', value: Math.random() * 100 },
+const radarData = [
+  { subject: 'Sales', A: 120, B: 110, fullMark: 150 },
+  { subject: 'Marketing', A: 98, B: 130, fullMark: 150 },
+  { subject: 'Development', A: 86, B: 130, fullMark: 150 },
+  { subject: 'Support', A: 99, B: 100, fullMark: 150 },
+  { subject: 'Admin', A: 85, B: 90, fullMark: 150 },
+  { subject: 'HR', A: 65, B: 85, fullMark: 150 },
 ];
+
+const scatterData = [
+  { x: 100, y: 200, z: 200 }, { x: 120, y: 100, z: 260 },
+  { x: 170, y: 300, z: 400 }, { x: 140, y: 250, z: 280 },
+  { x: 150, y: 400, z: 500 }, { x: 110, y: 280, z: 200 },
+  { x: 200, y: 350, z: 300 }, { x: 180, y: 220, z: 350 },
+];
+
+const treemapData = [
+  { name: 'Product A', size: 2400, fill: '#6366f1' },
+  { name: 'Product B', size: 4567, fill: '#8b5cf6' },
+  { name: 'Product C', size: 1398, fill: '#ec4899' },
+  { name: 'Product D', size: 9800, fill: '#f97316' },
+  { name: 'Product E', size: 3908, fill: '#10b981' },
+  { name: 'Product F', size: 4800, fill: '#06b6d4' },
+];
+
+const funnelData = [
+  { value: 100, name: 'Visitors', fill: '#6366f1' },
+  { value: 80, name: 'Leads', fill: '#8b5cf6' },
+  { value: 50, name: 'Qualified', fill: '#ec4899' },
+  { value: 30, name: 'Proposals', fill: '#f97316' },
+  { value: 20, name: 'Negotiations', fill: '#10b981' },
+  { value: 10, name: 'Closed Won', fill: '#06b6d4' },
+];
+
+const gaugeData = [
+  { name: 'Progress', value: 75, fill: '#6366f1' },
+];
+
+const heatmapData = Array.from({ length: 7 }, (_, i) => ({
+  day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
+  ...Object.fromEntries(
+    Array.from({ length: 24 }, (_, h) => [`h${h}`, Math.floor(Math.random() * 100)])
+  ),
+}));
+
+const tooltipStyle = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '8px',
+  fontSize: '12px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+};
+
+const axisStyle = { 
+  fontSize: 11, 
+  fill: 'hsl(var(--muted-foreground))' 
+};
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div role="tabpanel" hidden={value !== index} {...other}>
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 const ChartShowcase: React.FC = () => {
   const theme = useTheme();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [timeRange, setTimeRange] = useState('30d');
-  const [widgetSizes, setWidgetSizes] = useState<Record<string, { width: number; height: number }>>({});
+  const [tabValue, setTabValue] = useState(0);
 
-  const handleViewChange = (_: React.MouseEvent<HTMLElement>, newView: 'grid' | 'list' | null) => {
-    if (newView) setViewMode(newView);
-  };
-
-  const handleWidgetResize = (id: string, width: number, height: number) => {
-    setWidgetSizes(prev => ({ ...prev, [id]: { width, height } }));
-  };
+  const chartFeatures = [
+    'Interactive Tooltips',
+    'Resizable Widgets',
+    'All-Edge Handles',
+    'Smooth Animations',
+    'Theme Aware',
+    'Responsive',
+  ];
 
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Chart Library
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Interactive, resizable charts with zoom, brush, and legend controls
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Time Range</InputLabel>
-            <Select
-              value={timeRange}
-              label="Time Range"
-              onChange={(e) => setTimeRange(e.target.value)}
-            >
-              <MenuItem value="7d">Last 7 days</MenuItem>
-              <MenuItem value="30d">Last 30 days</MenuItem>
-              <MenuItem value="90d">Last 90 days</MenuItem>
-              <MenuItem value="1y">Last year</MenuItem>
-            </Select>
-          </FormControl>
-
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={handleViewChange}
-            size="small"
-          >
-            <ToggleButton value="grid">
-              <GridViewIcon fontSize="small" />
-            </ToggleButton>
-            <ToggleButton value="list">
-              <ListViewIcon fontSize="small" />
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-      </Box>
-
-      {/* Feature Chips */}
-      <Box sx={{ mb: 4, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-        {['Interactive Tooltips', 'Zoom Controls', 'Brush Selector', 'Legend Toggle', 'Fullscreen Mode', 'Resizable'].map((feature) => (
-          <Chip
-            key={feature}
-            label={feature}
-            size="small"
-            sx={{
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              color: 'primary.main',
-              fontWeight: 500,
-            }}
-          />
-        ))}
-      </Box>
-
-      {/* Charts Grid */}
-      <Grid container spacing={3}>
-        {chartConfigs.map((config, index) => (
-          <Grid
-            item
-            xs={12}
-            md={viewMode === 'list' ? 12 : 6}
-            lg={viewMode === 'list' ? 12 : 4}
-            key={`${config.type}-${index}`}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-            >
-              <InteractiveChart
-                data={config.type === 'pie' ? generatePieSampleData() : generateSampleData()}
-                type={config.type}
-                title={config.label}
-                subtitle={`Data for ${timeRange}`}
-                dataKeys={config.dataKeys}
-                height={viewMode === 'list' ? 400 : 280}
-                showBrush={config.type !== 'pie'}
-                showZoom={config.type !== 'pie'}
-              />
-            </motion.div>
-          </Grid>
-        ))}
-      </Grid>
-
-      {/* Resizable Widgets Section */}
-      <Box sx={{ mt: 6 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
-          Resizable Widgets
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          Chart Showcase
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Drag the corners to resize these chart widgets
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          All chart types with dummy data • Drag edges or corners to resize
         </Typography>
-
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          {['resizable-1', 'resizable-2'].map((id, index) => (
-            <ResizableWidget
-              key={id}
-              id={id}
-              initialWidth={450}
-              initialHeight={320}
-              minWidth={300}
-              minHeight={200}
-              onResize={handleWidgetResize}
-            >
-              <InteractiveChart
-                data={generateSampleData()}
-                type={index === 0 ? 'area' : 'bar'}
-                title={index === 0 ? 'Resizable Area Chart' : 'Resizable Bar Chart'}
-                dataKeys={['value', 'value2']}
-                height={(widgetSizes[id]?.height || 320) - 80}
-                showBrush
-              />
-            </ResizableWidget>
+        
+        {/* Feature Chips */}
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          {chartFeatures.map((feature) => (
+            <Chip
+              key={feature}
+              label={feature}
+              size="small"
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: 'primary.main',
+                fontWeight: 500,
+              }}
+            />
           ))}
         </Box>
       </Box>
+
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={(_, v) => setTabValue(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+        >
+          <Tab label="Line & Area" />
+          <Tab label="Bar Charts" />
+          <Tab label="Pie & Radar" />
+          <Tab label="Scatter & Treemap" />
+          <Tab label="Funnel & Gauge" />
+        </Tabs>
+      </Box>
+
+      {/* Tab 0: Line & Area Charts */}
+      <TabPanel value={tabValue} index={0}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <ResizableChartWidget title="Line Chart - Revenue Trend" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} dot={{ fill: '#6366f1', r: 4 }} />
+                  <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <ResizableChartWidget title="Area Chart - User Growth" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={lineData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#colorRevenue)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="profit" stroke="#10b981" fill="url(#colorProfit)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <ResizableChartWidget title="Stacked Area Chart" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={lineData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Area type="monotone" dataKey="revenue" stackId="1" stroke="#6366f1" fill="#6366f1" fillOpacity={0.6} />
+                  <Area type="monotone" dataKey="profit" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} />
+                  <Area type="monotone" dataKey="users" stackId="1" stroke="#ec4899" fill="#ec4899" fillOpacity={0.6} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+        </Box>
+      </TabPanel>
+
+      {/* Tab 1: Bar Charts */}
+      <TabPanel value={tabValue} index={1}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <ResizableChartWidget title="Bar Chart - Sales Comparison" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={lineData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="profit" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <ResizableChartWidget title="Stacked Bar Chart" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={lineData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Bar dataKey="revenue" stackId="a" fill="#6366f1" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="profit" stackId="a" fill="#8b5cf6" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="users" stackId="a" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <ResizableChartWidget title="Horizontal Bar Chart" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={lineData} layout="vertical" margin={{ top: 20, right: 30, left: 60, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis type="number" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis dataKey="name" type="category" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <ResizableChartWidget title="Composed Chart (Bar + Line)" initialWidth={520} initialHeight={320}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={lineData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis dataKey="name" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Line type="monotone" dataKey="profit" stroke="#f97316" strokeWidth={3} dot={{ fill: '#f97316', r: 4 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+        </Box>
+      </TabPanel>
+
+      {/* Tab 2: Pie & Radar */}
+      <TabPanel value={tabValue} index={2}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <ResizableChartWidget title="Pie Chart - Market Share" initialWidth={400} initialHeight={350}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+                  >
+                    {pieData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <ResizableChartWidget title="Doughnut Chart" initialWidth={400} initialHeight={350}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    paddingAngle={5}
+                  >
+                    {pieData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <ResizableChartWidget title="Radar Chart - Performance" initialWidth={400} initialHeight={350}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="hsl(var(--border))" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 150]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                  <Radar name="Team A" dataKey="A" stroke="#6366f1" fill="#6366f1" fillOpacity={0.3} strokeWidth={2} />
+                  <Radar name="Team B" dataKey="B" stroke="#ec4899" fill="#ec4899" fillOpacity={0.3} strokeWidth={2} />
+                  <Legend />
+                  <Tooltip contentStyle={tooltipStyle} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+        </Box>
+      </TabPanel>
+
+      {/* Tab 3: Scatter & Treemap */}
+      <TabPanel value={tabValue} index={3}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <ResizableChartWidget title="Scatter Chart - Distribution" initialWidth={520} initialHeight={350}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis type="number" dataKey="x" name="X Value" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <YAxis type="number" dataKey="y" name="Y Value" tick={axisStyle} stroke="hsl(var(--border))" />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={tooltipStyle} />
+                  <Scatter name="Data Points" data={scatterData} fill="#6366f1">
+                    {scatterData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Scatter>
+                </ScatterChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <ResizableChartWidget title="Treemap - Product Distribution" initialWidth={520} initialHeight={350}>
+              <ResponsiveContainer width="100%" height="100%">
+                <Treemap
+                  data={treemapData}
+                  dataKey="size"
+                  aspectRatio={4 / 3}
+                  stroke="hsl(var(--card))"
+                  fill="#6366f1"
+                >
+                  {treemapData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Treemap>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+        </Box>
+      </TabPanel>
+
+      {/* Tab 4: Funnel & Gauge */}
+      <TabPanel value={tabValue} index={4}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <ResizableChartWidget title="Funnel Chart - Conversion" initialWidth={450} initialHeight={400}>
+              <ResponsiveContainer width="100%" height="100%">
+                <FunnelChart>
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Funnel
+                    dataKey="value"
+                    data={funnelData}
+                    isAnimationActive
+                  >
+                    <LabelList position="right" fill="hsl(var(--foreground))" fontSize={11} />
+                  </Funnel>
+                </FunnelChart>
+              </ResponsiveContainer>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <ResizableChartWidget title="Gauge Chart - Progress (75%)" initialWidth={350} initialHeight={280}>
+              <div className="flex items-center justify-center h-full">
+                <div className="relative">
+                  <svg width="200" height="120" viewBox="0 0 200 120">
+                    {/* Background arc */}
+                    <path
+                      d="M 20 100 A 80 80 0 0 1 180 100"
+                      fill="none"
+                      stroke="hsl(var(--border))"
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                    />
+                    {/* Progress arc */}
+                    <path
+                      d="M 20 100 A 80 80 0 0 1 180 100"
+                      fill="none"
+                      stroke="#6366f1"
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                      strokeDasharray="251.2"
+                      strokeDashoffset={251.2 * (1 - 0.75)}
+                    />
+                    {/* Value text */}
+                    <text x="100" y="90" textAnchor="middle" fill="hsl(var(--foreground))" fontSize="32" fontWeight="700">
+                      75%
+                    </text>
+                    <text x="100" y="110" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="12">
+                      Completion Rate
+                    </text>
+                  </svg>
+                </div>
+              </div>
+            </ResizableChartWidget>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <ResizableChartWidget title="Multi Gauge - KPIs" initialWidth={500} initialHeight={280}>
+              <div className="flex items-center justify-around h-full p-4">
+                {[
+                  { label: 'Sales', value: 85, color: '#6366f1' },
+                  { label: 'Growth', value: 62, color: '#10b981' },
+                  { label: 'Retention', value: 91, color: '#f97316' },
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col items-center">
+                    <svg width="100" height="60" viewBox="0 0 100 60">
+                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="hsl(var(--border))" strokeWidth="8" strokeLinecap="round" />
+                      <path
+                        d="M 10 50 A 40 40 0 0 1 90 50"
+                        fill="none"
+                        stroke={item.color}
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray="125.6"
+                        strokeDashoffset={125.6 * (1 - item.value / 100)}
+                      />
+                      <text x="50" y="48" textAnchor="middle" fill="hsl(var(--foreground))" fontSize="16" fontWeight="700">
+                        {item.value}%
+                      </text>
+                    </svg>
+                    <span className="text-xs text-muted-foreground mt-1">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </ResizableChartWidget>
+          </motion.div>
+        </Box>
+      </TabPanel>
     </Box>
   );
 };
