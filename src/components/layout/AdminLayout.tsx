@@ -53,7 +53,7 @@ const navItems: NavItem[] = [
   { id: 'home', label: 'Dashboard', path: '/home', icon: <DashboardIcon /> },
   { id: 'dashboards', label: 'Analytics', path: '/dashboards', icon: <BarChartIcon /> },
   { id: 'forms', label: 'Dynamic Forms', path: '/dynamic-forms', icon: <DescriptionIcon /> },
-  { id: 'charts', label: 'Chart Library', path: '/charts', icon: <ChartIcon /> },
+  { id: 'charts', label: 'Chart Showcase', path: '/charts', icon: <ChartIcon /> },
 ];
 
 const AdminLayout: React.FC = () => {
