@@ -1,0 +1,1 @@
+export { EnhancedCanvas } from './EnhancedCanvas';
