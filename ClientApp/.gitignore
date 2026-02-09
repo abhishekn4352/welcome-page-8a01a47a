@@ -39,3 +39,6 @@ out/
 *.user
 .project
 .classpath
+
+# Exclude Dockerfile
+Dockerfile
